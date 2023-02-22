@@ -9,15 +9,18 @@ import ResetPassword from './Component/Auth/ResetPassword';
 import Expense from './Component/Auth/Expense';
 import { useContext } from 'react';
 import AuthContext from './Component/store/AuthContext';
-
+import Premium from './Component/Auth/Premium';
+import { useSelector } from 'react-redux';
 function App() {
-  const authCtx = useContext(AuthContext)
-  const isLoggedIn = authCtx.isLoggedIn;
+  const themeMode = useSelector((state) => state.theme.theme);
 
 
   return (
     <div className="App">
+      <div className={themeMode === 'dark' ? 'dark' : ''}>
+      <Premium />
       <Navigation />
+      </div>
       
 
     

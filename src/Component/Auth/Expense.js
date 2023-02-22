@@ -1,14 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import "./Expense.css";
-import axios from "axios";
-import { json } from "react-router-dom";
-import AuthContext from '../store/AuthContext';
-import { useNavigate } from "react-router-dom";
-import { useContext } from "react";
-import { Table } from "react-bootstrap";
-const Expense = () => {
+import ExpenseItem from "./ExpemseItem";
+import { addingExpense } from "../store/ExpenseAction";
+import { useSelector,useDispatch } from "react-redux";
+import { expenseAction } from "../store/Expense";
+const Expenses = () => {
 
-   const AuthContextToken = useContext(AuthContext);
+ /*  const AuthContextToken = useContext(AuthContext);
     const navigate = useNavigate();
     const [data, setUserData] = useState([]);
 
@@ -212,6 +210,160 @@ const Expense = () => {
         </Table>
      
     </div>
-  );
+  );*/
+  const dispatch = useDispatch()
+  const inputAmountRef = useRef();
+  const inputDescRef = useRef();
+  const inputCategoryRef = useRef();
+
+  const expenses = useSelector((state)=>state.expense.expenses)
+  const totalAmount = useSelector((state)=>state.expense.totalAmount)
+
+  const deleteExpenseHandler = async(item) => {
+    const updatedTotalAmount = Number(totalAmount) - Number(item.amount)
+    const updatedExpenses = expenses.filter((expense) => {
+        console.log(expense.id);
+      return expense.id !== item.id;
+    });
+    console.log("afterdeleted" , updatedExpenses)
+    dispatch(expenseAction.removeExpense({
+      expenses: updatedExpenses,
+      totalAmount : updatedTotalAmount
+    }));
+    console.log(updatedTotalAmount)
+  };
+
+  const editExpenseHandler = (item) => {
+
+
+    inputAmountRef.current.value= item.amount
+    inputDescRef.current.value= item.description
+    inputCategoryRef.current.value = item.category
+    const updatedTotalAmount = totalAmount - Number(item.amount)
+    const updatedExpenses = expenses.filter((expense) => {
+        return expense.id !== item.id;
+      });
+
+      dispatch(expenseAction.removeExpense({
+        expenses: updatedExpenses,
+        totalAmount : updatedTotalAmount
+      }))
+      console.log(updatedTotalAmount)
+  };
+  const addExpenseHandler = async (event) => {
+    event.preventDefault();
+    const obj = {
+      amount: inputAmountRef.current.value,
+      description: inputDescRef.current.value,
+      category: inputCategoryRef.current.value,
+    };
+
+    await dispatch( addingExpense(obj))
+
+    inputAmountRef.current.value=""
+    inputDescRef.current.value=""
+    inputCategoryRef.current.value=""
+}
+
+    useEffect(() => {
+        async function fetchExpenses(){
+        try {
+          const res = await fetch(
+            `https://expensetracker-1498c-default-rtdb.firebaseio.com/expenses.json`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+    
+          const data = await res.json();
+    
+          if (res.ok) {
+            let updatedtotalAmount =0;
+            const newdata = [];
+            for (let key in data) {
+    
+              newdata.push({ id: key, ...data[key] });
+              updatedtotalAmount += Number(data[key].amount)
+            }
+            dispatch(
+            expenseAction.replaceExpenses({
+              expenses : newdata,
+              totalAmount : updatedtotalAmount
+            })
+            )
+    
+          } else {
+            throw data.error;
+          }
+        } catch (error) {
+          console.log(error.message);
+        }
+      }
+    
+      fetchExpenses()
+       }, [dispatch , addExpenseHandler ]);
+    
+     
+    
+      return (
+        <div>
+          <div>
+            <form onSubmit={addExpenseHandler} className="form-expenses">
+              <label htmlFor="amount">Amount</label>
+              <input ref={inputAmountRef} type="number" id="amount" />
+    
+              <label htmlFor="desc">Description</label>
+              <textarea
+                // style={{
+                //   display: "block",
+                //   width: 100 + "%",
+                //   padding: 3 + "px",
+                //   margin: 5 + "px" + " " + 0 + " " + 5 + "px" + " " + 0,
+                //   boxSizing: "border-box",
+                // }}
+                type="text"
+                id="desc"
+                rows="3"
+                ref={inputDescRef}
+              ></textarea>
+              <label htmlFor="category">Choose a car:</label>
+              <select
+                ref={inputCategoryRef}
+                id="category"
+                //   style={{
+                //     display: "block",
+                //     width: 100 + "%",
+                //     padding: 3 + "px",
+                //     margin: 5 + "px" + " " + 0 + " " + 5 + "px" + " " + 0,
+                //     boxSizing: "border-box",
+                //   }}
+              >
+                <option value="Food">Food</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Rent">Rent</option>
+                <option value="Others">Others</option>
+              </select>
+              <button type="submit">Add Expense</button>
+            </form>
+          </div>
+          <div className="expenses-list">
+            {expenses.map((expense) => (
+              <ExpenseItem
+              key={expense.id}
+                id={expense.id}
+                item={expense}
+                deleteItem={deleteExpenseHandler}
+                editItem={editExpenseHandler}
+              />
+            ))}
+    
+            <div><b>Total Amount  </b> {totalAmount}</div>
+          </div>
+        </div>
+      );
 };
-export default Expense;
+
+export default Expenses;

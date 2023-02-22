@@ -6,7 +6,7 @@ import { Container, Navbar, Nav } from "react-bootstrap";
 import UpdateProfile from "../UI/UpdateProfile";
 import Welcome from "../UI/Welcome";
 import { Route } from "react-router-dom";
-import Expense from "./Expense";
+import Expenses from "./Expense";
 import ResetPassword from "./ResetPassword";
 import SignUp from "./SignUp";
 import { useDispatch, useSelector } from "react-redux";
@@ -61,7 +61,7 @@ const logoutHandler=async()=>{
               {!auth  && <Nav.Link as={Link} to={"/expense"}>
                   Expense
                 </Nav.Link>}
-              
+              <Nav.Link>Premium</Nav.Link>
              
              {auth && <Nav.Link onClick={logoutHandler}>Logout</Nav.Link>}
               
@@ -71,7 +71,7 @@ const logoutHandler=async()=>{
       </Navbar>
     <Routes>
       
-     <Route path="/expense" element={<Expense />}/>
+     <Route path="/expense" element={<Expenses />}/>
     <Route path="/about"></Route>
     <Route path="/home" exact element={<Welcome/>}></Route>
   
